@@ -62,3 +62,13 @@ class Concept(ABC):
     def _template_basename(self) -> str:
         """The basename of the template file."""
         pass
+
+
+class JenkinsMultibranchPipeline(Concept):
+    """Create a multibranch pipeline file in the XML format."""
+
+    def _template_path(self) -> str:
+        return os.path.join(os.getcwd(), "templates", "jenkins")
+
+    def _template_basename(self) -> str:
+        return "multibranch_pipeline.xml"
