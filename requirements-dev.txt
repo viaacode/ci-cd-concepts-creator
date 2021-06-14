@@ -1,2 +1,6 @@
 flake8==3.9.2
 black==21.5b1
+# Testing
+pytest==6.2.4
+pytest-cov==2.12.1
+responses==0.13.3
