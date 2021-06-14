@@ -1,0 +1,155 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  annotations:
+    tags: "{{app_type}}"
+  name: "{{app_name}}"
+  labels:
+    app: "{{app_name}}"
+objects:
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: "{{app_name}}-${env}"
+      namespace: "{{namespace}}"
+      labels:
+        app: "{{app_name}}"
+        app.kubernetes.io/component: "{{app_name}}-${env}"
+        app.kubernetes.io/instance: "{{app_name}}-${env}"
+        app.kubernetes.io/name: "{{app_name}}"
+        app.kubernetes.io/part-of: "{{app_name}}"
+        app.openshift.io/runtime: "{{app_name}}"
+        app.openshift.io/runtime-version: "${env}"
+        env: ${env}
+    spec:
+      ports:
+        - protocol: TCP
+          port: {% raw %}${{svc_port}}{% endraw +%}
+          targetPort: {% raw %}${{svc_port}}{% endraw +%}
+          name: http
+      selector:
+        app: "{{app_name}}-${env}"
+      clusterIP:
+      type: ClusterIP
+      sessionAffinity: None
+    status:
+      loadBalancer: {}
+  - kind: Deployment
+    apiVersion: apps/v1
+    metadata:
+      annotations:
+        alpha.image.policy.openshift.io/resolve-names: "*"
+        image.openshift.io/triggers: >-
+          [{'from':{'kind':'ImageStreamTag','name':'{{app_name}}:${env}','namespace':'{{namespace}}'},'fieldPath':'spec.template.spec.containers[?(@.name==\'{{app_name}}-${env}\')].image','pause':'false'}]
+      name: "{{app_name}}-${env}"
+      namespace: "{{namespace}}"
+      labels:
+        app: "{{app_name}}"
+        app.kubernetes.io/component: "{{app_name}}-${env}"
+        app.kubernetes.io/instance: "{{app_name}}-${env}"
+        app.kubernetes.io/name: "{{app_name}}"
+        app.kubernetes.io/part-of: "{{app_name}}"
+        app.openshift.io/runtime: "{{app_name}}"
+        app.openshift.io/runtime-version: ${env}
+        env: ${env}
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: "{{app_name}}-${env}"
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            app: "{{app_name}}-${env}"
+            deploymentconfig: "{{app_name}}-${env}"
+            env: ${env}
+          annotations:
+            openshift.io/generated-by: OpenShiftWebConsole
+        spec:
+          containers:
+            - name: "{{app_name}}-${env}"
+              terminationMessagePath: /dev/termination-log
+              resources:
+                limits:
+                  cpu: '${cpu_limit}m'
+                  memory: '${memory_limit}Mi'
+                requests:
+                  cpu: '${cpu_requested}m'
+                  memory: '${memory_requested}Mi'
+              ports:
+                - containerPort: {% raw %}${{svc_port}}{% endraw +%}
+                  protocol: TCP
+              imagePullPolicy: IfNotPresent
+              {% if app_type == 'web-app' %}
+              livenessProbe:
+                httpGet:
+                  path: /health/live
+                  port: 8080
+                initialDelaySeconds: 15
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+                failureThreshold: 3
+              readinessprobe:
+                tcpSocket:
+                  port: 8080
+                initialDelaySeconds: 15
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+                failureThreshold: 3
+              {% endif %}
+              terminationMessagePolicy: File
+              envFrom:
+                - configMapRef:
+                    name: "{{app_name}}-${env}"
+              image: >-
+                image-registry.openshift-image-registry.svc:5000/{{namespace}}/{{app_name}}:${env}
+          restartPolicy: Always
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          securityContext: {}
+          schedulerName: default-scheduler
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 25%
+          maxSurge: 25%
+      revisionHistoryLimit: 10
+      progressDeadlineSeconds: 600
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: "{{app_name}}-${env}"
+      namespace: "{{namespace}}"
+      labels:
+        app: "{{app_name}}"
+        app.kubernetes.io/component: "{{app_name}}-${env}"
+        app.kubernetes.io/instance: "{{app_name}}-${env}"
+        app.kubernetes.io/name: "{{app_name}}"
+        app.kubernetes.io/part-of: "{{app_name}}"
+        app.openshift.io/runtime: "{{app_name}}"
+        app.openshift.io/runtime-version: ${env}
+        env: ${env}
+    data:
+  {% if env_vars %}
+    {% for env_var in env_vars %}
+      {{env_var}}: some_value
+    {% endfor %}
+  {% else %}
+      key: some_value
+  {% endif %}
+parameters:
+  - name: env
+    value: "env"
+  - name: "memory_requested"
+    value: "{{memory_requested}}"
+  - name: "memory_limit"
+    value: "{{memory_limit}}"
+  - name: "cpu_requested"
+    value: "{{cpu_requested}}"
+  - name: "cpu_limit"
+    value: "{{cpu_limit}}"
+  - name: "svc_port"
+    value: "8080"

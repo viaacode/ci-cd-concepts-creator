@@ -72,3 +72,13 @@ class JenkinsMultibranchPipeline(Concept):
 
     def _template_basename(self) -> str:
         return "multibranch_pipeline.xml"
+
+
+class OpenShiftTemplate(Concept):
+    """Create an OpenShift template file in the YAML format."""
+
+    def _template_path(self) -> str:
+        return os.path.join(os.getcwd(), "templates", "openshift")
+
+    def _template_basename(self) -> str:
+        return "template.yml"
