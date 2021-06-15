@@ -7,6 +7,8 @@ from uuid import uuid4
 
 import click
 
+from helpers.jenkins_api import JenkinsAPI
+from helpers.openshift_api import OpenShiftAPI
 from helpers.concepts import OpenShiftTemplate, JenkinsMultibranchPipeline
 
 
@@ -86,6 +88,19 @@ from helpers.concepts import OpenShiftTemplate, JenkinsMultibranchPipeline
     type=int,
     show_default=True,
 )
+@click.option(
+    "--upload",
+    default=False,
+    help="Upload/create in Openshift/Jenkins.",
+    type=bool,
+    is_flag=True,
+    show_default=True,
+)
+@click.option("--openshift-api-url", envvar="OPENSHIFT_API_URL")
+@click.option("--openshift-api-token", envvar="OPENSHIFT_API_TOKEN")
+@click.option("--jenkins-api-url", envvar="JENKINS_API_URL")
+@click.option("--jenkins-api-user", envvar="JENKINS_API_USER")
+@click.option("--jenkins-api-token", envvar="JENKINS_API_TOKEN")
 def create(
     namespace,
     app_name,
@@ -98,6 +113,12 @@ def create(
     cpu_requested,
     memory_limit,
     cpu_limit,
+    upload,
+    openshift_api_url,
+    openshift_api_token,
+    jenkins_api_url,
+    jenkins_api_user,
+    jenkins_api_token,
 ):
     """Create the openshift concepts
 
@@ -117,7 +138,7 @@ def create(
             env_vars = [env_vars.split("=")[0] for env_var in env_file.readlines()]
         except Exception as e:
             raise click.ClickException(f"Error parsing the env file: {e}")
-    _create_openshift_template(
+    template_definition = _create_openshift_template(
         app_name,
         output_folder,
         **dict(
@@ -132,7 +153,7 @@ def create(
         ),
     )
     # Create Jenkins multibranch pipeline
-    _create_jenkins_multibranch_pipeline(
+    job_definition = _create_jenkins_multibranch_pipeline(
         app_name,
         output_folder,
         **dict(
@@ -141,19 +162,31 @@ def create(
         ),
     )
 
+    if upload:
+        # OpenShift
+        openshift_api = OpenShiftAPI(openshift_api_url, openshift_api_token)
+        openshift_api.create_process_template(
+            namespace, app_name, envs, template_definition
+        )
+        # Jenkins
+        jenkins_api = JenkinsAPI(jenkins_api_url, jenkins_api_user, jenkins_api_token)
+        jenkins_api.create_job(namespace, app_name, job_definition)
 
-def _create_openshift_template(app_name, output_folder, **kwargs):
+
+def _create_openshift_template(app_name, output_folder, **kwargs) -> str:
     template = OpenShiftTemplate(app_name, output_folder)
-    template.create_concept(**kwargs)
+    template_yaml = template.create_concept(**kwargs)
     click.echo(f"Wrote OpenShift template file ({template.construct_filename()})")
+    return template_yaml
 
 
-def _create_jenkins_multibranch_pipeline(app_name, output_folder, **kwargs):
+def _create_jenkins_multibranch_pipeline(app_name, output_folder, **kwargs) -> str:
     pipeline = JenkinsMultibranchPipeline(app_name, output_folder)
-    pipeline.create_concept(**kwargs)
+    pipeline_xml = pipeline.create_concept(**kwargs)
     click.echo(
         f"Wrote Jenkins multibranch pipeline file ({pipeline.construct_filename()})"
     )
+    return pipeline_xml
 
 
 if __name__ == "__main__":
