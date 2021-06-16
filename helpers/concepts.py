@@ -82,3 +82,12 @@ class OpenShiftTemplate(Concept):
 
     def _template_basename(self) -> str:
         return "template.yml"
+
+class JenkinsFile(Concept):
+    """ Create a Jenkinsfile for a declarative pipeline."""
+
+    def _template_path(self) -> str:
+        return os.path.join(os.getcwd(), "templates", "jenkins")
+
+    def _template_basename(self) -> str:
+        return "Jenkinsfile"
