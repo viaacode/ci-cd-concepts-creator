@@ -91,3 +91,12 @@ class JenkinsFile(Concept):
 
     def _template_basename(self) -> str:
         return "Jenkinsfile"
+
+class MakeFile(Concept):
+    """ Create a Makefile to be used in the pipeline."""
+
+    def _template_path(self) -> str:
+        return os.path.join(os.getcwd(), "templates", "jenkins")
+
+    def _template_basename(self) -> str:
+        return "Makefile"
