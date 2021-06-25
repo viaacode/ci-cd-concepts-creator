@@ -63,7 +63,17 @@ pipeline {
             }
             steps {
                 container('oc') {
-                    tagNewImage('int')
+                    script {
+                        sh '''#!/bin/bash
+                        login_oc.sh $OC_URL > /dev/null || echo ok
+                        oc project $OC_PROJECT
+                        oc import-image $BASE_IMG --confirm
+                        oc new-build -l ref=$BRANCH_NAME --strategy=docker --name $APP_NAME-$GIT_SHORT_COMMIT --to $APP_NAME:$GIT_SHORT_COMMIT --binary --context-dir="" || echo "Probably already exists, start new build"
+                        sleep 3
+                        oc annotate --overwrite buildconfig/$APP_NAME-$GIT_SHORT_COMMIT ref=$BRANCH_NAME shortcommit=$GIT_SHORT_COMMIT
+                        oc start-build $APP_NAME-$GIT_SHORT_COMMIT --from-dir=. --wait=true
+                        '''
+                    }
                 }
             }
         }
@@ -76,7 +86,7 @@ pipeline {
             }
             steps {
                 container('oc') {
-                    tagNewImage('qas')
+                    tagNewImage('int')
                 }
             }
             post {
@@ -94,17 +104,7 @@ pipeline {
             }
             steps {
                 container('oc') {
-                    script {
-                        sh '''#!/bin/bash
-                        login_oc.sh $OC_URL > /dev/null || echo ok
-                        oc project $OC_PROJECT
-                        oc tag $APP_NAME:$GIT_SHORT_COMMIT $APP_NAME:qas
-                        # Patch the deployment in order to trigger rollout
-                        # oc patch deployment $APP_NAME-qas -p '{"spec": {"template": {"metadata": {"annotations": {"git-ref": "$IMAGE_TAG"}}}}}'
-                        # Check the status of the rollout
-                        oc rollout status deployment/$APP_NAME-qas --watch=true
-                        '''
-                    }
+                    tagNewImage('qas')
                 }
             }
             post {
