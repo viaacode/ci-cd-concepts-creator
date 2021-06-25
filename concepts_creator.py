@@ -140,7 +140,7 @@ def create(
     env_vars = []
     if env_file:
         try:
-            env_vars = [env_vars.split("=")[0] for env_var in env_file.readlines()]
+            env_vars = [env_var.split("=")[0] for env_var in env_file.readlines()]
         except Exception as e:
             raise click.ClickException(f"Error parsing the env file: {e}")
     template_definition = _create_openshift_template(
