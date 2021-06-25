@@ -9,7 +9,12 @@ import click
 
 from helpers.jenkins_api import JenkinsAPI
 from helpers.openshift_api import OpenShiftAPI
-from helpers.concepts import OpenShiftTemplate, JenkinsMultibranchPipeline
+from helpers.concepts import (
+    MakeFile,
+    OpenShiftTemplate,
+    JenkinsMultibranchPipeline,
+    JenkinsFile,
+)
 
 
 @click.command("create", short_help="Create the concepts")
@@ -161,6 +166,10 @@ def create(
             main_branch=main_branch,
         ),
     )
+    # Create Jenkinsfile with declarative pipeline
+    _create_jenkinsfile(app_name, output_folder, **dict(namespace=namespace))
+    # Create Makefile
+    _create_makefile(app_name, output_folder)
 
     if upload:
         # OpenShift
@@ -187,6 +196,20 @@ def _create_jenkins_multibranch_pipeline(app_name, output_folder, **kwargs) -> s
         f"Wrote Jenkins multibranch pipeline file ({pipeline.construct_filename()})"
     )
     return pipeline_xml
+
+
+def _create_jenkinsfile(app_name, output_folder, **kwargs) -> str:
+    jenkinsfile = JenkinsFile(app_name, output_folder)
+    jenkinsfile_text = jenkinsfile.create_concept(**kwargs)
+    click.echo(f"Wrote Jenkinsfile ({jenkinsfile.construct_filename()})")
+    return jenkinsfile_text
+
+
+def _create_makefile(app_name, output_folder, **kwargs) -> str:
+    makefile = MakeFile(app_name, output_folder)
+    makefile_text = makefile.create_concept(**kwargs)
+    click.echo(f"Wrote Makefile ({makefile.construct_filename()})")
+    return makefile_text
 
 
 if __name__ == "__main__":
