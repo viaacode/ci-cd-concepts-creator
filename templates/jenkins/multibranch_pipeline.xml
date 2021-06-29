@@ -57,22 +57,31 @@
                     <properties class="empty-list"/>
                 </strategy>
                 <buildStrategies>
-                    <jenkins.branch.buildstrategies.basic.ChangeRequestBuildStrategyImpl plugin="basic-branch-build-strategies">
-                        <ignoreTargetOnlyChanges>true</ignoreTargetOnlyChanges>
-                        <ignoreUntrustedChanges>false</ignoreUntrustedChanges>
-                    </jenkins.branch.buildstrategies.basic.ChangeRequestBuildStrategyImpl>
-                    <jenkins.branch.buildstrategies.basic.NamedBranchBuildStrategyImpl plugin="basic-branch-build-strategies">
-                        <filters>
-                            <jenkins.branch.buildstrategies.basic.NamedBranchBuildStrategyImpl_-ExactNameFilter>
-                                <name>{{main_branch}}</name>
-                                <caseSensitive>false</caseSensitive>
-                            </jenkins.branch.buildstrategies.basic.NamedBranchBuildStrategyImpl_-ExactNameFilter>
-                        </filters>
-                    </jenkins.branch.buildstrategies.basic.NamedBranchBuildStrategyImpl>
-                    <jenkins.branch.buildstrategies.basic.TagBuildStrategyImpl plugin="basic-branch-build-strategies">
-                        <atLeastMillis>-1</atLeastMillis>
-                        <atMostMillis>86400000</atMostMillis>
-                    </jenkins.branch.buildstrategies.basic.TagBuildStrategyImpl>
+                    <jenkins.branch.buildstrategies.basic.AllBranchBuildStrategyImpl plugin="basic-branch-build-strategies">
+                        <strategies>
+                            <jenkins.branch.buildstrategies.basic.SkipInitialBuildOnFirstBranchIndexing/>
+                            <jenkins.branch.buildstrategies.basic.AnyBranchBuildStrategyImpl>
+                                <strategies>
+                                    <jenkins.branch.buildstrategies.basic.NamedBranchBuildStrategyImpl>
+                                        <filters>
+                                            <jenkins.branch.buildstrategies.basic.NamedBranchBuildStrategyImpl_-ExactNameFilter>
+                                                <name>{{main_branch}}</name>
+                                                <caseSensitive>false</caseSensitive>
+                                            </jenkins.branch.buildstrategies.basic.NamedBranchBuildStrategyImpl_-ExactNameFilter>
+                                        </filters>
+                                    </jenkins.branch.buildstrategies.basic.NamedBranchBuildStrategyImpl>
+                                    <jenkins.branch.buildstrategies.basic.TagBuildStrategyImpl>
+                                        <atLeastMillis>-1</atLeastMillis>
+                                        <atMostMillis>172800000</atMostMillis>
+                                    </jenkins.branch.buildstrategies.basic.TagBuildStrategyImpl>
+                                    <jenkins.branch.buildstrategies.basic.ChangeRequestBuildStrategyImpl>
+                                        <ignoreTargetOnlyChanges>true</ignoreTargetOnlyChanges>
+                                        <ignoreUntrustedChanges>false</ignoreUntrustedChanges>
+                                    </jenkins.branch.buildstrategies.basic.ChangeRequestBuildStrategyImpl>
+                                </strategies>
+                            </jenkins.branch.buildstrategies.basic.AnyBranchBuildStrategyImpl>
+                        </strategies>
+                    </jenkins.branch.buildstrategies.basic.AllBranchBuildStrategyImpl>
                 </buildStrategies>
             </jenkins.branch.BranchSource>
         </data>
