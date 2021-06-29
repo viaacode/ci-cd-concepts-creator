@@ -39,7 +39,7 @@ pipeline {
     }
 
     stages {
-        stage('Checkout code') {
+        stage('Calculate extra ENV vars') {
             steps {
                 script {
                     env.GIT_SHORT_COMMIT = sh(script: "printf \$(git rev-parse --short ${GIT_COMMIT})", returnStdout: true)
