@@ -38,8 +38,7 @@ class Concept(ABC):
 
     def construct_filename(self) -> str:
         """The filename to write to concept to."""
-        name = f"{self.app_name}_{self._template_basename()}"
-        return os.path.join(self.output_folder, name)
+        return os.path.join(self.output_folder, self._output_basename())
 
     def create_concept(self, **kwargs) -> str:
         """Create and write the concept to a file.
@@ -55,12 +54,17 @@ class Concept(ABC):
 
     @abstractmethod
     def _template_path(self) -> str:
-        """The path to the template file."""
+        """The path to the Jinja2 template file."""
         pass
 
     @abstractmethod
     def _template_basename(self) -> str:
-        """The basename of the template file."""
+        """The basename of the Jinja2 template file."""
+        pass
+
+    @abstractmethod
+    def _output_basename(self) -> str:
+        """The basename of the rendered file."""
         pass
 
 
@@ -73,6 +77,9 @@ class JenkinsMultibranchPipeline(Concept):
     def _template_basename(self) -> str:
         return "multibranch_pipeline.xml"
 
+    def _output_basename(self) -> str:
+        return f"{self.app_name}_{self._template_basename()}"
+
 
 class OpenShiftTemplate(Concept):
     """Create an OpenShift template file in the YAML format."""
@@ -83,8 +90,12 @@ class OpenShiftTemplate(Concept):
     def _template_basename(self) -> str:
         return "template.yml"
 
+    def _output_basename(self) -> str:
+        return f"{self.app_name}_{self._template_basename()}"
+
+
 class JenkinsFile(Concept):
-    """ Create a Jenkinsfile for a declarative pipeline."""
+    """Create a Jenkinsfile for a declarative pipeline."""
 
     def _template_path(self) -> str:
         return os.path.join(os.getcwd(), "templates", "jenkins")
@@ -92,11 +103,18 @@ class JenkinsFile(Concept):
     def _template_basename(self) -> str:
         return "Jenkinsfile"
 
+    def _output_basename(self) -> str:
+        return self._template_basename()
+
+
 class MakeFile(Concept):
-    """ Create a Makefile to be used in the pipeline."""
+    """Create a Makefile to be used in the pipeline."""
 
     def _template_path(self) -> str:
         return os.path.join(os.getcwd(), "templates", "jenkins")
 
     def _template_basename(self) -> str:
         return "Makefile"
+
+    def _output_basename(self) -> str:
+        return self._template_basename()
