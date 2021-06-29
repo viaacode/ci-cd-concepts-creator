@@ -56,7 +56,7 @@ from helpers.concepts import (
     "-o",
     "--output-folder",
     default=".",
-    help="The folder of the project the files to.",
+    help="The folder of the project the files to. The files will be written in a subfolder 'openshift'.",
     type=click.Path(file_okay=False, writable=True),
     show_default=True,
 )
@@ -145,11 +145,10 @@ def create(
             raise click.ClickException(f"Error parsing the env file: {e}")
     template_definition = _create_openshift_template(
         app_name,
-        output_folder,
+        openshift_folder,
         **dict(
             namespace=namespace,
             app_type=app_type,
-            openshift_folder=openshift_folder,
             memory_requested=memory_requested,
             cpu_requested=cpu_requested,
             memory_limit=memory_limit,
@@ -160,16 +159,16 @@ def create(
     # Create Jenkins multibranch pipeline
     job_definition = _create_jenkins_multibranch_pipeline(
         app_name,
-        output_folder,
+        openshift_folder,
         **dict(
             uuid=str(uuid4()),
             main_branch=main_branch,
         ),
     )
     # Create Jenkinsfile with declarative pipeline
-    _create_jenkinsfile(app_name, output_folder, **dict(namespace=namespace))
+    _create_jenkinsfile(app_name, openshift_folder, **dict(namespace=namespace))
     # Create Makefile
-    _create_makefile(app_name, output_folder)
+    _create_makefile(app_name, openshift_folder)
 
     if upload:
         # OpenShift
