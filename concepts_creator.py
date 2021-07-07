@@ -187,7 +187,7 @@ def create(
         )
         # Jenkins
         jenkins_api = JenkinsAPI(jenkins_api_url, jenkins_api_user, jenkins_api_token)
-        jenkins_api.create_job(namespace, app_name, job_definition)
+        jenkins_api.create_multibranch_pipeline(namespace, app_name, job_definition)
 
 
 def _create_openshift_template(app_name, output_folder, **kwargs) -> str:
