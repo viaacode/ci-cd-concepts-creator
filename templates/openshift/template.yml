@@ -53,7 +53,7 @@ objects:
         app.openshift.io/runtime-version: ${env}
         env: ${env}
     spec:
-      replicas: 1
+      replicas: {{replicas}}
       selector:
         matchLabels:
           app: "{{app_name}}-${env}"

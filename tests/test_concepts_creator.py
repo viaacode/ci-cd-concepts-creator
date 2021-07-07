@@ -46,5 +46,6 @@ def test_create(
             memory_limit=328,
             cpu_limit=300,
             env_vars=[],
+            replicas=0,
         )
     )

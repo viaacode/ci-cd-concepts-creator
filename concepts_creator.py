@@ -66,6 +66,13 @@ from helpers.concepts import (
     type=click.File("r"),
 )
 @click.option(
+    "--replicas",
+    default=0,
+    help="Amount of replicas of the deployment.",
+    type=int,
+    show_default=True,
+)
+@click.option(
     "--memory-requested",
     default=128,
     help="Minimum requested memory in Mebibytes.",
@@ -114,6 +121,7 @@ def create(
     app_type,
     output_folder,
     env_file,
+    replicas,
     memory_requested,
     cpu_requested,
     memory_limit,
@@ -154,6 +162,7 @@ def create(
             memory_limit=memory_limit,
             cpu_limit=cpu_limit,
             env_vars=env_vars,
+            replicas=replicas,
         ),
     )
     # Create Jenkins multibranch pipeline
