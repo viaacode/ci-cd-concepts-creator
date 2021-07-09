@@ -4,6 +4,8 @@
 import os
 from abc import ABC, abstractmethod
 
+import click
+
 from helpers.jinja_template import JinjaTemplate
 
 
@@ -51,6 +53,25 @@ class Concept(ABC):
         with open(self.construct_filename(), "w") as f:
             f.writelines(concept)
         return concept
+
+    def load_rendered_concept(self) -> str:
+        """Load in a previously rendered template.
+
+        Utilising the  "convention above configuration" principle it will look for a
+        file with the basename, defined by the method _output_basename in the
+        instance variable output folder and return the contents of that file.
+
+
+        Returns:
+            The contents of the concept file or None if the file is not found.
+        """
+        filename = os.path.join(self.output_folder, self._output_basename())
+        try:
+            with open(filename, "r") as f:
+                return f.read()
+        except OSError as e:
+            click.echo(f'Error loading in concept file ("{filename}""): {e} ')
+            return None
 
     @abstractmethod
     def _template_path(self) -> str:

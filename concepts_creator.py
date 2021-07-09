@@ -17,7 +17,12 @@ from helpers.concepts import (
 )
 
 
-@click.command("create", short_help="Create the concepts")
+@click.group()
+def group():
+    pass
+
+
+@group.command("create", short_help="Create the concepts")
 @click.argument("namespace")
 @click.argument("app_name")
 @click.option(
@@ -220,5 +225,70 @@ def _create_makefile(app_name, output_folder, **kwargs) -> str:
     return makefile_text
 
 
+@group.command("upload", short_help="Upload the concepts")
+@click.argument("namespace")
+@click.argument("app_name")
+@click.argument(
+    "output_folder",
+    type=click.Path(file_okay=False),
+)
+@click.option(
+    "--envs",
+    multiple=True,
+    default=[
+        "int",
+        "qas",
+        "prd",
+    ],
+    help="environments",
+    type=click.Choice(
+        [
+            "int",
+            "qas",
+            "prd",
+        ],
+        case_sensitive=False,
+    ),
+    show_default=True,
+)
+@click.option("--openshift-api-url", envvar="OPENSHIFT_API_URL")
+@click.option("--openshift-api-token", envvar="OPENSHIFT_API_TOKEN")
+@click.option("--jenkins-api-url", envvar="JENKINS_API_URL")
+@click.option("--jenkins-api-user", envvar="JENKINS_API_USER")
+@click.option("--jenkins-api-token", envvar="JENKINS_API_TOKEN")
+def upload(
+    namespace,
+    app_name,
+    output_folder,
+    envs,
+    openshift_api_url,
+    openshift_api_token,
+    jenkins_api_url,
+    jenkins_api_user,
+    jenkins_api_token,
+):
+    """Upload the openshift concepts
+
+    NAMESPACE: The namespace of the app.\n
+    APP NAME: The name of the app.\n
+    FOLDER: The folder where the concepts reside.\n
+
+    """
+
+    # OpenShift
+    template = OpenShiftTemplate(app_name, output_folder)
+    template_yaml = template.load_rendered_concept()
+    if template_yaml:
+        openshift_api = OpenShiftAPI(openshift_api_url, openshift_api_token)
+        openshift_api.create_process_template(namespace, app_name, envs, template_yaml)
+
+    # Jenkins
+    pipeline = JenkinsMultibranchPipeline(app_name, output_folder)
+    pipeline_xml = pipeline.load_rendered_concept()
+    if pipeline_xml:
+        jenkins_api = JenkinsAPI(jenkins_api_url, jenkins_api_user, jenkins_api_token)
+        jenkins_api.create_multibranch_pipeline(namespace, app_name, pipeline_xml)
+
+
 if __name__ == "__main__":
-    create()
+    group()
