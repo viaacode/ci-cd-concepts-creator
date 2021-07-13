@@ -39,8 +39,6 @@ objects:
     metadata:
       annotations:
         alpha.image.policy.openshift.io/resolve-names: "*"
-        image.openshift.io/triggers: >-
-          [{'from':{'kind':'ImageStreamTag','name':'{{app_name}}:${env}','namespace':'{{namespace}}'},'fieldPath':'spec.template.spec.containers[?(@.name==\'{{app_name}}-${env}\')].image','pause':'false'}]
       name: "{{app_name}}-${env}"
       namespace: "{{namespace}}"
       labels:

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import copy
+import json
 from typing import List
 
 import click
@@ -28,6 +30,9 @@ class OpenShiftAPI:
 
         Lastly, every object in that processed template will be created
         in OpenShift.
+
+        For the deployment, an image trigger will be set so that a new deployment
+        rolls out automatically when there is an image stream change.
 
         Args:
             project: The project to create the resources in.
@@ -77,6 +82,32 @@ class OpenShiftAPI:
             )
             response_deployment.raise_for_status()
             click.echo("Deployment created")
+
+            # Set the image trigger
+            headers_patch = copy.deepcopy(headers)
+            headers_patch["Content-type"] = "application/strategic-merge-patch+json"
+
+            trigger = json.dumps(
+                [
+                    {
+                        "from": {"kind": "ImageStreamTag", "name": f"{app_name}:{env}"},
+                        "fieldPath": f'spec.template.spec.containers[?(@.name=="{app_name}-{env}")].image',
+                    }
+                ]
+            )
+
+            trigger_payload = {
+                "metadata": {"annotations": {"image.openshift.io/triggers": trigger}}
+            }
+
+            # Patch in the trigger
+            response_trigger = requests.patch(
+                f"{self.url}/apis/apps/v1/namespaces/{project}/deployments/{app_name}-{env}",
+                headers=headers_patch,
+                json=trigger_payload,
+            )
+            response_trigger.raise_for_status()
+            click.echo("Image trigger created")
 
             # Create the config map
             response_config_map = requests.post(

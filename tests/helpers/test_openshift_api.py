@@ -19,6 +19,9 @@ def test_create_process_template(open_shift_api):
     processed_template_url = "https://localhost/apis/template.openshift.io/v1/namespaces/project/processedtemplates"
     service_url = "https://localhost/api/v1/namespaces/project/services"
     deployments_url = "https://localhost/apis/apps/v1/namespaces/project/deployments"
+    trigger_url = (
+        "https://localhost/apis/apps/v1/namespaces/project/deployments/appname-tst"
+    )
     config_map_url = "https://localhost/api/v1/namespaces/project/configmaps"
 
     processed_template = {"objects": ["service", "deployment", "configmap"]}
@@ -27,6 +30,7 @@ def test_create_process_template(open_shift_api):
     responses.add(responses.POST, processed_template_url, json=processed_template)
     responses.add(responses.POST, service_url)
     responses.add(responses.POST, deployments_url)
+    responses.add(responses.PATCH, trigger_url)
     responses.add(responses.POST, config_map_url)
 
     template_path = os.path.join(os.getcwd(), "tests", "resources", "template.yml")
@@ -35,4 +39,4 @@ def test_create_process_template(open_shift_api):
 
     open_shift_api.create_process_template("project", "appname", ["tst"], yaml_object)
 
-    assert len(responses.calls) == 5
+    assert len(responses.calls) == 6
