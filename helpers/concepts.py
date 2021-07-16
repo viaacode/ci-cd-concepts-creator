@@ -75,10 +75,10 @@ class JenkinsMultibranchPipeline(Concept):
         return os.path.join(os.getcwd(), "templates", "jenkins")
 
     def _template_basename(self) -> str:
-        return "multibranch_pipeline.xml"
+        return "multibranch-pipeline.xml"
 
     def _output_basename(self) -> str:
-        return f"{self.app_name}_{self._template_basename()}"
+        return f"{self.app_name}-{self._template_basename()}"
 
 
 class OpenShiftTemplate(Concept):
@@ -91,7 +91,7 @@ class OpenShiftTemplate(Concept):
         return "template.yml"
 
     def _output_basename(self) -> str:
-        return f"{self.app_name}_{self._template_basename()}"
+        return f"{self.app_name}-{self._template_basename()}"
 
 
 class JenkinsFile(Concept):
