@@ -89,7 +89,7 @@ objects:
                 successThreshold: 1
                 timeoutSeconds: 1
                 failureThreshold: 3
-              readinessprobe:
+              readinessProbe:
                 tcpSocket:
                   port: {% raw %}${{svc_port}}{% endraw +%}
                 initialDelaySeconds: 15
