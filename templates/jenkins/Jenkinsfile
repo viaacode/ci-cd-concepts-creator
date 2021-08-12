@@ -32,7 +32,7 @@ pipeline {
     }
     environment {
         OC_PROJECT = '{{namespace}}'
-        BASE_IMG = 'python:3.7'
+        BASE_IMG = '{{base_image}}'
         OC_URL = 'https://c113-e.private.eu-de.containers.cloud.ibm.com:30227'
         JIRA_URL = 'meemoo.atlassian.net'
         APP_NAME = '{{app_name}}'
@@ -164,7 +164,7 @@ pipeline {
 }
 
 void getImageFromDockerfile() {
-    return 'python:3.7'
+    return '{{base_image}}'
 }
 
 void setGitHubBuildStatus(String message, String state) {

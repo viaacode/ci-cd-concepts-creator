@@ -66,6 +66,13 @@ def group():
     show_default=True,
 )
 @click.option(
+    "--base-image",
+    default="python:3.7",
+    help="The base image used to run the tests in.",
+    type=str,
+    show_default=True,
+)
+@click.option(
     "--env-file",
     help="Env file",
     type=click.File("r"),
@@ -125,6 +132,7 @@ def create(
     envs,
     app_type,
     output_folder,
+    base_image,
     env_file,
     replicas,
     memory_requested,
@@ -180,7 +188,9 @@ def create(
         ),
     )
     # Create Jenkinsfile with declarative pipeline
-    _create_jenkinsfile(app_name, openshift_folder, **dict(namespace=namespace))
+    _create_jenkinsfile(
+        app_name, openshift_folder, **dict(namespace=namespace, base_image=base_image)
+    )
     # Create Makefile
     _create_makefile(app_name, openshift_folder)
 

@@ -27,8 +27,15 @@ PARAMS_MANDATORY_UPLOAD = [
 @patch("concepts_creator.OpenShiftAPI")
 @patch("concepts_creator.OpenShiftTemplate")
 @patch("concepts_creator.JenkinsMultibranchPipeline")
+@patch("concepts_creator.JenkinsFile")
+@patch("concepts_creator.MakeFile")
 def test_create(
-    jenkins_multibranch_pipeline, open_shift_template, open_shift_api, jenkins_api
+    make_file,
+    jenkins_file,
+    jenkins_multibranch_pipeline,
+    open_shift_template,
+    open_shift_api,
+    jenkins_api,
 ):
     runner = CliRunner()
     result = runner.invoke(
@@ -44,7 +51,6 @@ def test_create(
     assert j_kwargs["main_branch"] == "main"
     assert UUID(j_kwargs["uuid"], version=4)  # Check if UUID
 
-    assert open_shift_template.call_count == 1
     open_shift_template.assert_called_once_with(APP_NAME, "./openshift")
     open_shift_template().create_concept.assert_called_once_with(
         **dict(
@@ -58,6 +64,14 @@ def test_create(
             replicas=0,
         )
     )
+    # Jenkinsfile
+    jenkins_file.assert_called_once_with(APP_NAME, "./openshift")
+    jenkins_file().create_concept.assert_called_once_with(
+        **dict(namespace=NAMESPACE, base_image="python:3.7")
+    )
+    # Makefile
+    make_file.assert_called_once_with(APP_NAME, "./openshift")
+    make_file().create_concept.assert_called_once()
 
 
 @patch("concepts_creator.JenkinsAPI")
