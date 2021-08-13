@@ -99,9 +99,24 @@ objects:
                 failureThreshold: 3
               {% endif %}
               terminationMessagePolicy: File
+              {% if env_vars %}
+              env:
+                {% for env_var in env_vars %}
+                - name: '{{env_var}}'
+                  value: some_value
+                {% endfor %}
+              {% endif %}
+              {% if cm_keys or secrets%}
               envFrom:
+                {% if cm_keys %}
                 - configMapRef:
                     name: "{{app_name}}-${env}"
+                {% endif %}
+                {% if secrets %}
+                - secretRef:
+                    name: "{{app_name}}-${env}"
+                {% endif %}
+              {% endif %}
               image: >-
                 image-registry.openshift-image-registry.svc:5000/{{namespace}}/{{app_name}}:${env}
           restartPolicy: Always
@@ -116,6 +131,7 @@ objects:
           maxSurge: 25%
       revisionHistoryLimit: 10
       progressDeadlineSeconds: 600
+   {% if cm_keys %}
   - kind: ConfigMap
     apiVersion: v1
     metadata:
@@ -131,12 +147,29 @@ objects:
         app.openshift.io/runtime-version: ${env}
         env: ${env}
     data:
-  {% if env_vars %}
-    {% for env_var in env_vars %}
-      {{env_var}}: some_value
+    {% for cm_key in cm_keys %}
+      {{cm_key}}: some_value
     {% endfor %}
-  {% else %}
-      key: some_value
+  {% endif %}
+  {% if secrets %}
+  - kind: Secret
+    apiVersion: v1
+    metadata:
+      name: "{{app_name}}-${env}"
+      namespace: "{{namespace}}"
+      labels:
+        app: "{{app_name}}"
+        app.kubernetes.io/component: "{{app_name}}-${env}"
+        app.kubernetes.io/instance: "{{app_name}}-${env}"
+        app.kubernetes.io/name: "{{app_name}}"
+        app.kubernetes.io/part-of: "{{app_name}}"
+        app.openshift.io/runtime: "{{app_name}}"
+        app.openshift.io/runtime-version: ${env}
+        env: ${env}
+    stringData:
+    {% for secret in secrets %}
+      {{secret}}: ''
+    {% endfor %}
   {% endif %}
 parameters:
   - name: env

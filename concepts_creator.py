@@ -74,7 +74,17 @@ def group():
 )
 @click.option(
     "--env-file",
-    help="Env file",
+    help="File containing the keys which will be added as separate env vars in the deployment",
+    type=click.File("r"),
+)
+@click.option(
+    "--config-map-file",
+    help="File containing the keys which will be added in a config map",
+    type=click.File("r"),
+)
+@click.option(
+    "--secrets-file",
+    help="File containing the keys which will be added in a secrets",
     type=click.File("r"),
 )
 @click.option(
@@ -134,6 +144,8 @@ def create(
     output_folder,
     base_image,
     env_file,
+    config_map_file,
+    secrets_file,
     replicas,
     memory_requested,
     cpu_requested,
@@ -158,12 +170,28 @@ def create(
     Path(openshift_folder).mkdir(parents=True, exist_ok=True)
 
     # Create OpenShift template
-    env_vars = []
+    env_vars, cm_keys, secrets = [], [], []
     if env_file:
         try:
-            env_vars = [env_var.split("=")[0] for env_var in env_file.readlines()]
+            env_vars: list = [
+                env_var.strip().split("=")[0] for env_var in env_file.readlines()
+            ]
         except Exception as e:
             raise click.ClickException(f"Error parsing the env file: {e}")
+    if config_map_file:
+        try:
+            cm_keys: list = [
+                cm_key.strip().split("=")[0] for cm_key in config_map_file.readlines()
+            ]
+        except Exception as e:
+            raise click.ClickException(f"Error parsing the config map file: {e}")
+    if secrets_file:
+        try:
+            secrets: list = [
+                secret.strip().split("=")[0] for secret in secrets_file.readlines()
+            ]
+        except Exception as e:
+            raise click.ClickException(f"Error parsing the secrets file: {e}")
     template_definition = _create_openshift_template(
         app_name,
         openshift_folder,
@@ -175,6 +203,8 @@ def create(
             memory_limit=memory_limit,
             cpu_limit=cpu_limit,
             env_vars=env_vars,
+            cm_keys=cm_keys,
+            secrets=secrets,
             replicas=replicas,
         ),
     )

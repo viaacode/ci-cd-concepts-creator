@@ -29,7 +29,11 @@ class OpenShiftAPI:
         their respective values.
 
         Lastly, every object in that processed template will be created
-        in OpenShift.
+        in OpenShift:
+                - Service
+                - Deployment
+                - Config map (optional)
+                - Secret (optional)
 
         For the deployment, an image trigger will be set so that a new deployment
         rolls out automatically when there is an image stream change.
@@ -108,12 +112,28 @@ class OpenShiftAPI:
             )
             response_trigger.raise_for_status()
             click.echo("Image trigger created")
-
-            # Create the config map
-            response_config_map = requests.post(
-                f"{self.url}/api/v1/namespaces/{project}/configmaps",
-                headers=headers,
-                json=proc_template["objects"][2],
+            # If available, create the config map
+            config_maps = list(
+                filter(lambda x: x["kind"] == "ConfigMap", proc_template["objects"])
             )
-            response_config_map.raise_for_status()
-            click.echo("Config map created")
+            if config_maps:
+                response_config_map = requests.post(
+                    f"{self.url}/api/v1/namespaces/{project}/configmaps",
+                    headers=headers,
+                    json=config_maps[0],
+                )
+                response_config_map.raise_for_status()
+                click.echo("Config map created")
+
+            # If available, create the secret
+            secrets = list(
+                filter(lambda x: x["kind"] == "Secret", proc_template["objects"])
+            )
+            if secrets:
+                response_config_map = requests.post(
+                    f"{self.url}/api/v1/namespaces/{project}/secrets",
+                    headers=headers,
+                    json=secrets[0],
+                )
+                response_config_map.raise_for_status()
+                click.echo("Secret created")

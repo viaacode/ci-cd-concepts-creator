@@ -1,5 +1,28 @@
 apiVersion: template.openshift.io/v1
 kind: Template
+metadata:
+  name: "test_template"
+objects:
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: "test_service"
+  - kind: Deployment
+    apiVersion: apps/v1
+    metadata:
+      name: "test_deployment"
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: "test_config_map"
+    data:
+      test: test
+  - kind: Secret
+    apiVersion: v1
+    metadata:
+      name: "test_secret"
+    stringData:
+      test: test
 parameters:
   - name: env
     value: "env"
