@@ -183,4 +183,4 @@ parameters:
   - name: "cpu_limit"
     value: "{{cpu_limit}}"
   - name: "svc_port"
-    value: "8080"
+    value: "{{service_port}}"

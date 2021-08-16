@@ -64,6 +64,7 @@ def test_create(
             cm_keys=[],
             secrets=[],
             replicas=0,
+            service_port=8080,
         )
     )
     # Jenkinsfile

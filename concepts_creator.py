@@ -95,6 +95,13 @@ def group():
     show_default=True,
 )
 @click.option(
+    "--service-port",
+    default=8080,
+    help="The port the service should run on.",
+    type=int,
+    show_default=True,
+)
+@click.option(
     "--memory-requested",
     default=128,
     help="Minimum requested memory in Mebibytes.",
@@ -147,6 +154,7 @@ def create(
     config_map_file,
     secrets_file,
     replicas,
+    service_port,
     memory_requested,
     cpu_requested,
     memory_limit,
@@ -206,6 +214,7 @@ def create(
             cm_keys=cm_keys,
             secrets=secrets,
             replicas=replicas,
+            service_port=service_port,
         ),
     )
     # Create Jenkins multibranch pipeline
