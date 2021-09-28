@@ -56,7 +56,7 @@ class OpenShiftAPI:
             json=yaml_object,
         )
         response_template.raise_for_status()
-        click.echo("Template created")
+        click.echo(f"Template '{project}/{app_name}' created")
         for env in envs:
             # Process the template with the parameters filled in
             yaml_object["parameters"][0]["value"] = env
@@ -76,7 +76,7 @@ class OpenShiftAPI:
                 json=proc_template["objects"][0],
             )
             response_service.raise_for_status()
-            click.echo("Service created")
+            click.echo(f"Service '{project}/{app_name}-{env}' created")
 
             # Create the deployment
             response_deployment = requests.post(
@@ -85,7 +85,7 @@ class OpenShiftAPI:
                 json=proc_template["objects"][1],
             )
             response_deployment.raise_for_status()
-            click.echo("Deployment created")
+            click.echo(f"Deployment '{project}/{app_name}-{env}' created")
 
             # Set the image trigger
             headers_patch = copy.deepcopy(headers)
@@ -111,7 +111,7 @@ class OpenShiftAPI:
                 json=trigger_payload,
             )
             response_trigger.raise_for_status()
-            click.echo("Image trigger created")
+            click.echo(f"Image trigger for '{project}/{app_name}-{env}' created")
             # If available, create the config map
             config_maps = list(
                 filter(lambda x: x["kind"] == "ConfigMap", proc_template["objects"])
@@ -123,7 +123,7 @@ class OpenShiftAPI:
                     json=config_maps[0],
                 )
                 response_config_map.raise_for_status()
-                click.echo("Config map created")
+                click.echo(f"Config map '{project}/{app_name}-{env}' created")
 
             # If available, create the secret
             secrets = list(
@@ -136,4 +136,4 @@ class OpenShiftAPI:
                     json=secrets[0],
                 )
                 response_config_map.raise_for_status()
-                click.echo("Secret created")
+                click.echo(f"Secret '{project}/{app_name}-{env}' created")
