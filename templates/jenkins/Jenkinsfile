@@ -8,7 +8,7 @@ pipeline {
         metadata:
           labels:
             component: builder
-            lang: python
+            lang: ${getBaseImageName()}
             app: {{app_name}}
         spec:
           containers:
@@ -32,7 +32,8 @@ pipeline {
     }
     environment {
         OC_PROJECT = '{{namespace}}'
-        BASE_IMG = '{{base_image}}'
+        BASE_IMG = "${getImageFromDockerfile()}"
+        BASE_IMG_NAME = "${getBaseImageName()}"
         OC_URL = 'https://c113-e.private.eu-de.containers.cloud.ibm.com:30227'
         JIRA_URL = 'meemoo.atlassian.net'
         APP_NAME = '{{app_name}}'
@@ -69,6 +70,7 @@ pipeline {
                         sh '''#!/bin/bash
                         oc project $OC_PROJECT
                         oc import-image $BASE_IMG --confirm
+                        oc set image-lookup $BASE_IMG_NAME
                         oc new-build -l ref=$BRANCH_NAME --strategy=docker --name $APP_NAME-$GIT_SHORT_COMMIT --to $APP_NAME:$GIT_SHORT_COMMIT --binary --context-dir="" || echo "Probably already exists, start new build"
                         sleep 3
                         oc annotate --overwrite buildconfig/$APP_NAME-$GIT_SHORT_COMMIT ref=$BRANCH_NAME shortcommit=$GIT_SHORT_COMMIT
@@ -167,6 +169,9 @@ pipeline {
 
 void getImageFromDockerfile() {
     return '{{base_image}}'
+}
+void getBaseImageName() {
+    return getImageFromDockerfile().split(':')[0]
 }
 
 void setGitHubBuildStatus(String message, String state) {
