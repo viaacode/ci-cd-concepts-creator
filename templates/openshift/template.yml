@@ -28,7 +28,8 @@ objects:
           targetPort: {% raw %}${{svc_port}}{% endraw +%}
           name: http
       selector:
-        app: "{{app_name}}-${env}"
+        app: "{{app_name}}"
+        env: ${env}
       clusterIP:
       type: ClusterIP
       sessionAffinity: None
@@ -54,12 +55,13 @@ objects:
       replicas: {{replicas}}
       selector:
         matchLabels:
-          app: "{{app_name}}-${env}"
+          app: "{{app_name}}"
+          env: ${env}
       template:
         metadata:
           creationTimestamp: null
           labels:
-            app: "{{app_name}}-${env}"
+            app: "{{app_name}}"
             deploymentconfig: "{{app_name}}-${env}"
             env: ${env}
           annotations:
