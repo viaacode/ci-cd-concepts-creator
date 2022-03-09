@@ -46,12 +46,12 @@ def test_create(
     assert jenkins_api.call_count == 0
     assert open_shift_api.call_count == 0
 
-    jenkins_multibranch_pipeline.assert_called_once_with(APP_NAME, "./openshift")
+    jenkins_multibranch_pipeline.assert_called_once_with(APP_NAME, "./.openshift")
     j_kwargs = jenkins_multibranch_pipeline().create_concept.call_args.kwargs
     assert j_kwargs["main_branch"] == "main"
     assert UUID(j_kwargs["uuid"], version=4)  # Check if UUID
 
-    open_shift_template.assert_called_once_with(APP_NAME, "./openshift")
+    open_shift_template.assert_called_once_with(APP_NAME, "./.openshift")
     open_shift_template().create_concept.assert_called_once_with(
         **dict(
             namespace=NAMESPACE,
@@ -68,12 +68,12 @@ def test_create(
         )
     )
     # Jenkinsfile
-    jenkins_file.assert_called_once_with(APP_NAME, "./openshift")
+    jenkins_file.assert_called_once_with(APP_NAME, "./.openshift")
     jenkins_file().create_concept.assert_called_once_with(
         **dict(namespace=NAMESPACE, base_image="python:3.7")
     )
     # Makefile
-    make_file.assert_called_once_with(APP_NAME, "./openshift")
+    make_file.assert_called_once_with(APP_NAME, "./.openshift")
     make_file().create_concept.assert_called_once()
 
 

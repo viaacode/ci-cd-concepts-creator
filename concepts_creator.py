@@ -61,7 +61,7 @@ def group():
     "-o",
     "--output-folder",
     default=".",
-    help="The folder of the project the files to. The files will be written in a subfolder 'openshift'.",
+    help="The folder of the project the files to. The files will be written in a subfolder '.openshift'.",
     type=click.Path(file_okay=False, writable=True),
     show_default=True,
 )
@@ -173,7 +173,7 @@ def create(
 
     """
     # Assemble openshift folder to write to.
-    openshift_folder = os.path.join(output_folder, "openshift")
+    openshift_folder = os.path.join(output_folder, ".openshift")
     # Create openshift subfolder if it not yet exists.
     Path(openshift_folder).mkdir(parents=True, exist_ok=True)
 
