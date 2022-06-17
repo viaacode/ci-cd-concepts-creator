@@ -125,6 +125,11 @@ pipeline {
                     tagNewImage('prd')
                 }
             }
+            post {
+                always {
+                    jiraSendDeploymentInfo site: "${JIRA_URL}", environmentId: 'prd', environmentName: 'prd', environmentType: 'production'
+                }
+            }
         }
     }
     post {
